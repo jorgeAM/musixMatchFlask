@@ -5,14 +5,15 @@ provider:
   runtime: python3.7
 
 functions:
-  hello:
-    handler: handler.getTrack
+  getTrack:
+    handler: wsgi.handler
     events:
-      - http:
-          path: tracks
-          method: post
+      - http: 'POST /tracks'
 
 custom:
+  wsgi:
+    app: app.app
+    packRequirements: false
   pythonRequirements:
     dockerizePip: non-linux
 
