@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from musixmatch.api import Musixmatch
 
 app = Flask(__name__)
@@ -7,12 +7,14 @@ musixmatch = Musixmatch(API_KEY)
 
 @app.route('/tracks', methods=['POST'])
 def get_track():
-    lyrics = request.json.get('lyrics')
-    track = musixmatch.track.search(lyrics, page_size=1)[0]
-    if not lyrics:
-        return jsonify({'error': 'Ingresa una parte de la canción que quieres encontrar.'}), 400
+    req_data = request.get_json(force=True)
+    lyrics = req_data.get('queryResult').get('queryText')
+    tracks = musixmatch.track.search(lyrics, page_size=1)
+    response = ''
+    if len(tracks) > 0:
+        track = tracks[0]
+        response = 'Okay, creo que la cancion es {song}.'.format(song=track.name)
+    else:
+        response = 'Uy esta esta si esta dificil, mejor probemos con otra.'
 
-    return {
-        "res": "La cancion que buscas probablemente es {song} del album {album}"
-        .format(song=track.name, album=track.album_name)
-    }
+    return make_response(jsonify({'fulfillmentText': response}))
